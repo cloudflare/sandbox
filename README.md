@@ -1,4 +1,5 @@
 # sandbox
+
 ## Linux seccomp made easy
 
 This package provides a simple way to enable basic `seccomp` [system call filtering][1] in any application (even proprietary one) via environment variables. It is very similar to `SystemCallFilter=` [functionality in systemd][2], but with some advantages:
@@ -21,12 +22,14 @@ The package provides a dynamically linked library `libsandbox.so` for dynamicall
 For dynamically linked executables the sandboxing code is injected using the `LD_PRELOAD` [dynamic linker option][3].
 
 No sandboxing:
+
 ```bash
 $ ./helloworld
 Hello, world!
 ```
 
 With sandboxing:
+
 ```bash
 $ LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libsandbox.so SECCOMP_SYSCALL_ALLOW="fstat:write:exit_group" ./helloworld
 adding fstat to the process seccomp filter
@@ -36,6 +39,7 @@ Hello, world!
 ```
 
 If the process uses a system call, which was not explicitly listed:
+
 ```bash
 $ LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libsandbox.so SECCOMP_SYSCALL_ALLOW="fstat:exit_group" ./helloworld
 adding fstat to the process seccomp filter
@@ -44,6 +48,7 @@ Bad system call
 ```
 
 and a audit event is generated:
+
 ```
 [Mon Apr  6 11:27:30 2020] audit: type=1326 audit(1586168850.755:5): auid=1000 uid=1000 gid=1000 ses=2 subj=kernel pid=3148 comm="helloworld" exe="/home/ignat/git/sandbox/helloworld" sig=31 arch=c000003e syscall=1 compat=0 ip=0x7f6c3650e504 code=0x80000000
 ```
@@ -53,6 +58,7 @@ and a audit event is generated:
 It is possible to permanently link the executable to `libsandbox.so` without recompiling the code and avoid defining `LD_PRELOAD` environment variable. For example:
 
 Before:
+
 ```bash
 $ ldd ./helloworld
 	linux-vdso.so.1 (0x00007ffd2018e000)
@@ -61,6 +67,7 @@ $ ldd ./helloworld
 ```
 
 Adding `libsandbox.so` as a runtime dependency:
+
 ```bash
 $ patchelf --add-needed /usr/lib/x86_64-linux-gnu/libsandbox.so ./helloworld
 $ ldd ./helloworld
@@ -117,6 +124,7 @@ While it is possible to use `sandboxify` utility for dynamically linked executab
 For example, if we attempt to use `sandboxify` to secure dynamically linked `helloworld` application from above, instead of `SECCOMP_SYSCALL_ALLOW="fstat:write:exit_group"` we would need `SECCOMP_SYSCALL_ALLOW="brk:access:openat:fstat:mmap:close:read:mprotect:munmap:arch_prctl:write:exit_group"` to allow all the system calls the dynamic linker and the C-runtime need to setup the process.
 
 ### Currently not supported
+
   * filters based on specific system call arguments
   * custom return error codes
 
