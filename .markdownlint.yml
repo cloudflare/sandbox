@@ -1,0 +1,14 @@
+# MD006 Consider starting bulleted lists at the beginning of the line
+MD006: false
+
+# MD007/ul-indent Unordered list indentation
+MD007: false
+
+# MD010 Hard tabs
+MD010: false
+
+# MD013 Line length
+MD013: false
+
+# MD040/fenced-code-language Fenced code blocks should have a language specified
+MD040: false
