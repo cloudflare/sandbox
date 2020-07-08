@@ -30,6 +30,32 @@ static void add_syscall(scmp_filter_ctx ctx, const char *syscall, uint32_t actio
 	}
 }
 
+static const char *get_seccomp_action_name(uint32_t action)
+{
+        const char *action_name;
+        switch (action) {
+            case SCMP_ACT_KILL_PROCESS:
+                action_name = "kill process";
+                break;
+            case SCMP_ACT_KILL_THREAD:
+                action_name = "kill thread";
+                break;
+            case SCMP_ACT_TRAP:
+                action_name = "throw SIGSYS";
+                break;
+            case SCMP_ACT_LOG:
+                action_name = "log then allow";
+                break;
+            case SCMP_ACT_ALLOW:
+                action_name = "allow";
+                break;
+            default:
+                /* TODO(paulsmith): SCMP_ACT_ERRNO, SCMP_ACT_TRACE */
+                action_name = "unknown action";
+        }
+        return action_name;
+}
+
 void setup_seccomp_filter(void)
 {
 	scmp_filter_ctx seccomp_ctx;
@@ -77,7 +103,7 @@ void setup_seccomp_filter(void)
 			continue;
 		}
 
-		fprintf(stderr, "adding %s to the process seccomp filter\n", syscall_name);
+		fprintf(stderr, "adding %s to the process seccomp filter (%s)\n", syscall_name, get_seccomp_action_name(seccomp_syscall_action));
 		add_syscall(seccomp_ctx, syscall_name, seccomp_syscall_action);
 		if ('\0' == *cur)
 			break;
