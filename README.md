@@ -8,6 +8,29 @@ This package provides a simple way to enable basic `seccomp` [system call filter
     > the execve, exit, exit_group, getrlimit, rt_sigreturn, sigreturn system calls and the system calls for querying time and sleeping are implicitly whitelisted...
   * it can provide tighter filtering for dynamically linked binaries
 
+### Building
+
+The build system expects a recent version of [libseccomp][5] to be available as a static library. It is recommended to build it from upstream source rather than rely on the version from a particular distribution.
+
+The `Makefile` will look for a valid [libseccomp][5] tree and the build in the `libseccomp` directory, so the easiest way to satisfy the dependency is to do the following in the project directory:
+
+```bash
+user@dev:~/sandbox$ curl -L -O https://github.com/seccomp/libseccomp/releases/download/v2.4.3/libseccomp-2.4.3.tar.gz
+user@dev:~/sandbox$ tar xf libseccomp-2.4.3.tar.gz && mv libseccomp-2.4.3 libseccomp
+user@dev:~/sandbox$ cd libseccomp && ./configure --enable-shared=no && make
+```
+
+Then build `sandbox` with `make` from the project directory:
+
+```bash
+user@dev:~/sandbox$ make
+cc -c -fPIC -Ilibseccomp/include -o sandbox.o sandbox.c
+cc -c -fPIC -Ilibseccomp/include -o preload.o preload.c
+cc -shared -Wl,--version-script=libsandbox.version -o libsandbox.so sandbox.o preload.o libseccomp/src/.libs/libseccomp.a
+cc -c -fPIC -Ilibseccomp/include -o sandboxify.o sandboxify.c
+cc -o sandboxify sandboxify.o sandbox.o libseccomp/src/.libs/libseccomp.a
+```
+
 ### Usage
 
 The package provides a dynamically linked library `libsandbox.so` for dynamically linked executables and a command line utility `sandboxify` for statically linked executables. The system call filter can be defined with the following environment variables:
@@ -132,3 +155,4 @@ For example, if we attempt to use `sandboxify` to secure dynamically linked `hel
 [2]: https://www.freedesktop.org/software/systemd/man/systemd.exec.html#SystemCallFilter=
 [3]: http://man7.org/linux/man-pages/man8/ld.so.8.html
 [4]: https://filippo.io/linux-syscall-table/
+[5]: https://github.com/seccomp/libseccomp
