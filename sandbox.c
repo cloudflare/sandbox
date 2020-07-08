@@ -37,12 +37,6 @@ static const char *get_seccomp_action_name(uint32_t action)
             case SCMP_ACT_KILL_PROCESS:
                 action_name = "kill process";
                 break;
-            case SCMP_ACT_KILL_THREAD:
-                action_name = "kill thread";
-                break;
-            case SCMP_ACT_TRAP:
-                action_name = "throw SIGSYS";
-                break;
             case SCMP_ACT_LOG:
                 action_name = "log then allow";
                 break;
@@ -50,7 +44,8 @@ static const char *get_seccomp_action_name(uint32_t action)
                 action_name = "allow";
                 break;
             default:
-                /* TODO(paulsmith): SCMP_ACT_ERRNO, SCMP_ACT_TRACE */
+                /* TODO(paulsmith): add remaining seccomp action types
+                   when they are supported */
                 action_name = "unknown action";
         }
         return action_name;
@@ -85,6 +80,7 @@ void setup_seccomp_filter(void)
 		fputs("failed to init seccomp context\n", stderr);
 		exit(1);
 	}
+	fprintf(stderr, "initializing seccomp with default action (%s)\n", get_seccomp_action_name(seccomp_default_action));
 
 	cur = syscall_list;
 	while (cur = strchrnul(syscall_list, (int)':')) {
