@@ -146,6 +146,31 @@ While it is possible to use `sandboxify` utility for dynamically linked executab
 
 For example, if we attempt to use `sandboxify` to secure dynamically linked `helloworld` application from above, instead of `SECCOMP_SYSCALL_ALLOW="fstat:write:exit_group"` we would need `SECCOMP_SYSCALL_ALLOW="brk:access:openat:fstat:mmap:close:read:mprotect:munmap:arch_prctl:write:exit_group"` to allow all the system calls the dynamic linker and the C-runtime need to setup the process.
 
+#### Check the status
+
+It is possible to use [`/proc/[pid]/status`][6] to verify the target process has a seccomp policy applied by checking the `Seccomp` field in the output (it has to be set to `2`):
+
+```bash
+$ grep Seccomp /proc/self/status
+Seccomp:	0
+$ LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libsandbox.so SECCOMP_SYSCALL_ALLOW="brk:close:exit_group:fstat:futex:mmap:openat:read:rt_sigaction:sigaltstack:stat:write" SECCOMP_DEFAULT_ACTION=log grep Seccomp /proc/self/status
+adding brk to the process seccomp filter
+adding close to the process seccomp filter
+adding exit_group to the process seccomp filter
+adding fstat to the process seccomp filter
+adding futex to the process seccomp filter
+adding mmap to the process seccomp filter
+adding openat to the process seccomp filter
+adding read to the process seccomp filter
+adding rt_sigaction to the process seccomp filter
+adding sigaltstack to the process seccomp filter
+adding stat to the process seccomp filter
+adding write to the process seccomp filter
+Seccomp:	2
+```
+
+Unfortunately, the field only indicates that some policy was applied, but provides no further details.
+
 ### Currently not supported
 
   * filters based on specific system call arguments
@@ -156,3 +181,4 @@ For example, if we attempt to use `sandboxify` to secure dynamically linked `hel
 [3]: http://man7.org/linux/man-pages/man8/ld.so.8.html
 [4]: https://filippo.io/linux-syscall-table/
 [5]: https://github.com/seccomp/libseccomp
+[6]: https://man7.org/linux/man-pages/man5/proc.5.html
