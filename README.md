@@ -138,7 +138,26 @@ Above filter does not allow any system call for the `helloworld` application, bu
 [Mon Apr  6 12:04:02 2020] audit: type=1326 audit(1586171042.680:140): auid=1000 uid=1000 gid=1000 ses=2 subj=kernel pid=3284 comm="helloworld" exe="/home/ignat/git/sandbox/helloworld" sig=0 arch=c000003e syscall=231 compat=0 ip=0x7f21a2d1f9d6 code=0x7ffc0000
 ```
 
-The example above shows `helloworld` binary tried to use system calls `5`, `1` and `231`. By searching online, for example [here][4]: it is possible to translate the numbers into system call names: `fstat`, `write` and `exit_group` respectively.
+The example above shows `helloworld` binary tried to use system calls `5`, `1` and `231`. By searching online, for example [here][4]: it is possible to translate the numbers into system call names: `fstat`, `write` and `exit_group` respectively. However, if you have **auditd** installed, a **faster way to do this lookup** is to simply run:
+
+```
+ausyscall <syscall_number>
+```
+
+For example:
+
+```
+$ ausyscall 5
+fstat
+```
+
+If you are logging to auditd, you can also have it translate the syscalls / interpet them for you. You can do this by:
+
+```
+# ausearch -i | grep -i helloworld
+```
+
+which will translate the syscalls and other numeric fields for you
 
 #### sandboxify vs libsandbox.so
 
