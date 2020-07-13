@@ -121,6 +121,8 @@ adding exit_group to the process seccomp filter
 Hello, world!
 ```
 
+Under the hood `sandboxify` uses [`PTRACE_O_SUSPEND_SECCOMP` ptrace option][7], therefore requires `CAP_SYS_ADMIN` capability to operate properly. Depending on the target system [Yama LSM][8] configuration `sandboxify` might also require `CAP_SYS_PTRACE` capability.
+
 #### permissive (log) mode
 
 When sandboxing new applications it is usually not very clear what system calls it uses to define the proper seccomp filter, so on initial stages it is possible to configure the sandbox to log filter violations instead of immediately killing the process via `SECCOMP_DEFAULT_ACTION=log` environment variable.
@@ -182,3 +184,5 @@ Unfortunately, the field only indicates that some policy was applied, but provid
 [4]: https://filippo.io/linux-syscall-table/
 [5]: https://github.com/seccomp/libseccomp
 [6]: https://man7.org/linux/man-pages/man5/proc.5.html
+[7]: https://man7.org/linux/man-pages/man2/ptrace.2.html
+[8]: https://www.kernel.org/doc/html/latest/admin-guide/LSM/Yama.html
