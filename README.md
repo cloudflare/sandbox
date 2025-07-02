@@ -1,5 +1,7 @@
 # sandbox
 
+_(If you're looking for the container-based sandboxing environment for Cloudflare Workers, please refer to https://github.com/cloudflare/sandbox-sdk)_
+
 ## Linux seccomp made easy
 
 This package provides a simple way to enable basic `seccomp` [system call filtering][1] in any application (even proprietary one) via environment variables. It is very similar to `SystemCallFilter=` [functionality in systemd][2], but with some advantages:
