@@ -93,6 +93,8 @@ int main(int argc, char **argv)
 	} else {
 		int status = 0;
 		pid_t waitp;
+		/* the SIGSTOP sent by PTRACE_ATTACH has been suppressed */
+		int attach_stop_seen = 0;
 
 		if (close(pipefds[0])) {
 			perror("closing pipe end");
@@ -149,6 +151,9 @@ int main(int argc, char **argv)
 			}
 
 			if (WIFSTOPPED(status)) {
+				int sig = WSTOPSIG(status);
+				siginfo_t si;
+
 				if ((SIGTRAP | (PTRACE_EVENT_EXEC << 8)) == (status >> 8)) {
 					/* parent is stopped before returning from exec. */
 					/* re-enable seccomp filters and detach */
@@ -162,7 +167,17 @@ int main(int argc, char **argv)
 					}
 					return EXIT_SUCCESS;
 				}
-				if (ptrace(PTRACE_CONT, parent, NULL, NULL)) {
+				/* A signal-delivery-stop: the signal is being delivered to the
+				 * parent, resuming it with 0 would drop the signal. Only the
+				 * SIGSTOP of PTRACE_ATTACH and group-stops (for which
+				 * PTRACE_GETSIGINFO fails) must not be passed on. */
+				if (sig == SIGSTOP && !attach_stop_seen) {
+					attach_stop_seen = 1;
+					sig = 0;
+				} else if (ptrace(PTRACE_GETSIGINFO, parent, NULL, &si)) {
+					sig = 0;
+				}
+				if (ptrace(PTRACE_CONT, parent, NULL, (void *)(long)sig)) {
 					perror("failed to resume the parent");
 					return EXIT_FAILURE;
 				}
